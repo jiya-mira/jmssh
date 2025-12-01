@@ -21,6 +21,8 @@ pub enum AppError {
 
     #[error("route target profile not found for label: {0}")]
     ProfileRouteTargetNotFound(String),
+    #[error("invalid auth mode: {0}")]
+    InvalidAuthMode(String),
 }
 
 pub type AppResult<T> = anyhow::Result<T, AppError>;

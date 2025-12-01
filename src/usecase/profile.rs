@@ -65,7 +65,6 @@ pub async fn add_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
     let host = input.host.unwrap_or_else(|| "127.0.0.1".to_string());
     let user = input.user.unwrap_or_else(|| "root".to_string());
     let port = input.port.unwrap_or(22);
-    let mode = input.mode.unwrap_or_else(|| "agent".to_string());
 
     let txn = ctx.db.begin().await?;
 
@@ -78,12 +77,14 @@ pub async fn add_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
         return Err(AppError::ProfileAlreadyExists(input.label.clone()));
     }
 
+    let auth_mode = AuthMode::from_str(input.mode.as_deref())?;
+
     let active = entity::profiles::ActiveModel {
         label: Set(Some(input.label.clone())),
         hostname: Set(host.clone()),
         username: Set(user.clone()),
         port: Set(Some(port)),
-        auth_mode: Set(entity::profiles::AuthMode::Agent),
+        auth_mode: Set(auth_mode),
         tags: Set(input.tags.clone()),
         note: Set(input.notes.clone()),
         ..Default::default()
@@ -103,7 +104,7 @@ pub async fn add_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
         host,
         user,
         port,
-        mode,
+        mode: model.auth_mode.as_str().to_string(),
         tags: model.tags,
         note: model.note,
     })
@@ -138,7 +139,7 @@ pub async fn set_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
         active.note = Set(Some(note));
     }
     if let Some(mode_str) = input.mode {
-        active.auth_mode = Set(AuthMode::Agent);
+        active.auth_mode = Set(AuthMode::from_str(Some(mode_str.as_str()))?);
     }
 
     let model = active.update(&txn).await?;
@@ -155,7 +156,7 @@ pub async fn set_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
         host: model.hostname,
         user: model.username,
         port: model.port.unwrap_or(22),
-        mode: model.auth_mode.to_string(),
+        mode: model.auth_mode.as_str().to_string(),
         tags: model.tags,
         note: model.note,
     })
