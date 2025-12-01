@@ -1,10 +1,10 @@
 use crate::app::AppContext;
 use crate::cli::ConnectArgs;
-use crate::error::AppResult;
+use crate::error::{AppError, AppResult};
 use crate::term::{c_accent, c_prefix};
-use crate::usecase::{connect, ConnectInput};
+use crate::usecase::{ConnectInput, connect};
 use itertools::Itertools;
-use std::process::Command;
+use std::process::{Command, ExitStatus};
 
 pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()> {
     // 1. CLI -> usecase 输入
@@ -96,4 +96,16 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
     }
 
     Ok(())
+}
+
+fn run_ssh_plain(args: &[String]) -> AppResult<ExitStatus> {
+    Command::new("ssh")
+        .args(args)
+        .status()
+        .map_err(|e| AppError::IoError(format!("failed to spawn ssh: {e}")))
+}
+
+fn run_ssh_with_password(args: &[String], password: Option<String>) -> AppResult<ExitStatus> {
+    if let Some(password) = password {}
+    run_ssh_plain(args)
 }

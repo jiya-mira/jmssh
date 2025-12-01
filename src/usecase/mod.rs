@@ -1,6 +1,7 @@
 use crate::entity::profiles::AuthMode;
 
 pub mod connect;
+pub mod password;
 pub mod profile;
 
 #[derive(Debug, Clone)]

@@ -12,6 +12,7 @@ pub enum Command {
     Gui(GuiArgs),
     Profile(ProfileArgs),
     Connect(ConnectArgs),
+    Password(PasswordArgs),
     #[command(hide = true)]
     _Complete(CompleteArgs),
 }
@@ -28,7 +29,6 @@ pub enum ProfileCommand {
     Set(EditProfileArgs),
     Rm(ProfileWithoutArgs),
     Show(ProfileWithoutArgs),
-    Password(ProfileWithoutArgs),
     List,
 }
 
@@ -79,6 +79,24 @@ pub struct ConnectArgs {
 #[derive(Args)]
 pub struct ProfileWithoutArgs {
     /// Profile 标识，例如 "cc.lax"
+    pub label: String,
+}
+
+#[derive(Args)]
+pub struct PasswordArgs {
+    #[command(subcommand)]
+    pub cmd: PasswordCommand,
+}
+
+#[derive(Subcommand)]
+pub enum PasswordCommand {
+    Set(PasswordLabelArgs),
+    Show(PasswordLabelArgs),
+    Clear(PasswordLabelArgs),
+}
+
+#[derive(Args)]
+pub struct PasswordLabelArgs {
     pub label: String,
 }
 

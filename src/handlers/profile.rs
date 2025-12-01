@@ -9,7 +9,6 @@ pub async fn handle_profile(ctx: &AppContext, args: ProfileArgs) -> AppResult<()
     match args.cmd {
         ProfileCommand::Add(args) => profile_add(ctx, args).await?,
         ProfileCommand::Set(args) => profile_set(ctx, args).await?,
-        ProfileCommand::Password(args) => password_set(ctx, args).await?,
         _ => profile_unknown(ctx).await?,
     };
 

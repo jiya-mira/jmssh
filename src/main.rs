@@ -8,9 +8,9 @@ mod db;
 mod entity;
 mod error;
 mod handlers;
-mod usecase;
-mod term;
 mod infra;
+mod term;
+mod usecase;
 
 use crate::db::init_schema;
 use anyhow::Result;
@@ -29,6 +29,7 @@ async fn main() -> Result<()> {
         Command::Gui(args) => {
             println!("[jmssh] gui (TODO: start web server and open browser)");
         }
+        Command::Password(args) => handlers::password::handle_password(&ctx, args).await?,
         Command::Profile(args) => handlers::profile::handle_profile(&ctx, args).await?,
         Command::Connect(args) => handlers::connect::handle_connect(&ctx, args).await?,
         Command::_Complete(args) => {}
