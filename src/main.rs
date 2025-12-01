@@ -8,8 +8,9 @@ mod db;
 mod entity;
 mod error;
 mod handlers;
-pub mod usecase;
+mod usecase;
 mod term;
+mod infra;
 
 use crate::db::init_schema;
 use anyhow::Result;
