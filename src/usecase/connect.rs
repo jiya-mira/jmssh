@@ -68,16 +68,16 @@ pub async fn build_connect_plan(ctx: &AppContext, input: ConnectInput) -> AppRes
 
     // 6) 按顺序组装 hops：先 jumps，再最终目标
     let hops = via_ids
-        .iter()
+        .into_iter()
         // 6.1 jumps
         .map(|via_id| {
             let p = profile_map
-                .get(via_id)
+                .get(&via_id)
                 .ok_or_else(|| AppError::ProfileRouteTargetNotFound(format!("#{via_id}")))?;
 
             Ok::<_, AppError>(build_connect_hop(
                 p,
-                key_map.get(via_id).cloned().unwrap_or(None),
+                key_map.get(&via_id).cloned().unwrap_or(None),
             ))
         })
         // 6.2 最终目标

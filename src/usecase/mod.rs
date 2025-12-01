@@ -1,7 +1,7 @@
 use crate::entity::profiles::AuthMode;
 
-mod connect;
-mod profile;
+pub mod connect;
+pub mod profile;
 
 #[derive(Debug, Clone)]
 pub struct EditProfileInput {
