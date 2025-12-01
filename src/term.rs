@@ -21,3 +21,8 @@ pub fn c_accent(text: &str) -> String {
     // 亮青
     color("1;36", text)
 }
+
+pub fn c_error(text: &str) -> String {
+    // 红
+    color("1;31", text)
+}

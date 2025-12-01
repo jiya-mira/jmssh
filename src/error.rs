@@ -26,6 +26,9 @@ pub enum AppError {
 
     #[error("password store error: {0}")]
     PasswordStoreError(String),
+
+    #[error("io error: {0}")]
+    IoError(String),
 }
 
 pub type AppResult<T> = anyhow::Result<T, AppError>;

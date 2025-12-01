@@ -1,5 +1,6 @@
 use crate::app::AppContext;
 use crate::entity;
+use crate::entity::profiles;
 use crate::entity::profiles::AuthMode;
 use crate::error::{AppError, AppResult};
 use crate::usecase::{EditProfileInput, ProfileView};
@@ -18,8 +19,8 @@ where
     }
 
     // 1) 查出所有目标 profile（按 label 匹配）
-    let via_profiles = entity::profiles::Entity::find()
-        .filter(entity::profiles::Column::Label.is_in(jumps.to_vec()))
+    let via_profiles = profiles::Entity::find()
+        .filter(profiles::Column::Label.is_in(jumps.to_vec()))
         .all(db)
         .await?;
 
@@ -68,8 +69,8 @@ pub async fn add_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
 
     let txn = ctx.db.begin().await?;
 
-    if entity::profiles::Entity::find()
-        .filter(entity::profiles::Column::Label.eq(input.label.clone()))
+    if profiles::Entity::find()
+        .filter(profiles::Column::Label.eq(input.label.clone()))
         .one(&txn)
         .await?
         .is_some()
@@ -79,7 +80,7 @@ pub async fn add_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
 
     let auth_mode = AuthMode::from_str(input.mode.as_deref())?;
 
-    let active = entity::profiles::ActiveModel {
+    let active = profiles::ActiveModel {
         label: Set(Some(input.label.clone())),
         hostname: Set(host.clone()),
         username: Set(user.clone()),
@@ -115,13 +116,13 @@ pub async fn set_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
 
     let txn = ctx.db.begin().await?;
 
-    let model = entity::profiles::Entity::find()
-        .filter(entity::profiles::Column::Label.eq(label.clone()))
+    let model = profiles::Entity::find()
+        .filter(profiles::Column::Label.eq(label.clone()))
         .one(&txn)
         .await?
         .ok_or(AppError::ProfileNotFound(label))?;
 
-    let mut active: entity::profiles::ActiveModel = model.into();
+    let mut active: profiles::ActiveModel = model.into();
 
     if let Some(host) = input.host {
         active.hostname = Set(host);
@@ -160,4 +161,23 @@ pub async fn set_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
         tags: model.tags,
         note: model.note,
     })
+}
+
+pub async fn set_profile_password_by_label(
+    ctx: &AppContext,
+    label: String,
+    password: Option<String>,
+) -> AppResult<()> {
+    // 1) label -> profile.id
+    let profile = profiles::Entity::find()
+        .filter(profiles::Column::Label.eq(label.clone()))
+        .one(&ctx.db)
+        .await?
+        .ok_or(AppError::ProfileNotFound(label.clone()))?;
+
+    // 2) 交给 PasswordStore
+    ctx.password_store
+        .set_profile_password(profile.id, password)?;
+
+    Ok(())
 }

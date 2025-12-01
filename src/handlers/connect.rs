@@ -2,9 +2,8 @@ use crate::app::AppContext;
 use crate::cli::ConnectArgs;
 use crate::error::AppResult;
 use crate::term::{c_accent, c_prefix};
-use crate::usecase::{ConnectInput, connect};
+use crate::usecase::{connect, ConnectInput};
 use itertools::Itertools;
-use std::cmp::max;
 use std::process::Command;
 
 pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()> {
