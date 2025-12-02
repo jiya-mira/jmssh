@@ -41,6 +41,8 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build (release)
+        env:
+          RUSTFLAGS: --remap-path-prefix=${{ github.workspace }}=.
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Package binary
@@ -75,28 +77,6 @@ jobs:
 
       - name: Compress binary with upx (Linux)
         if: ${{ startsWith(matrix.os, 'ubuntu-') }}
-        run: |
-          set -e
-          upx --best --lzma --ultra-brute "$OUT_FILE"
-
-      - name: Install upx (macOS)
-        if: ${{ startsWith(matrix.os, 'macos-') }}
-        run: |
-          brew install upx
-
-      - name: Compress binary with upx (macOS)
-        if: ${{ startsWith(matrix.os, 'macos-') }}
-        run: |
-          set -e
-          upx --best --lzma --ultra-brute "$OUT_FILE"
-
-      - name: Install upx (Windows)
-        if: ${{ startsWith(matrix.os, 'windows-') }}
-        run: |
-          choco install upx -y
-
-      - name: Compress binary with upx (Windows)
-        if: ${{ startsWith(matrix.os, 'windows-') }}
         run: |
           set -e
           upx --best --lzma --ultra-brute "$OUT_FILE"
