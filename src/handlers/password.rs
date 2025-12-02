@@ -13,7 +13,7 @@ pub async fn handle_password(ctx: &AppContext, args: PasswordArgs) -> AppResult<
 }
 
 async fn handle_password_set(ctx: &AppContext, args: PasswordLabelArgs) -> AppResult<()> {
-    let prompt = format!("Password for '{}': ", args.label);
+    let prompt = format!("password for '{}': ", args.label);
     let pwd = rpassword::prompt_password(prompt)
         .map_err(|e| AppError::IoError(format!("failed to read password: {e}")))?;
 
