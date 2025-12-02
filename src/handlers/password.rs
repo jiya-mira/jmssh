@@ -1,7 +1,7 @@
 use crate::app::AppContext;
 use crate::cli::{PasswordArgs, PasswordCommand, PasswordLabelArgs};
 use crate::error::{AppError, AppResult};
-use crate::term::c_prefix;
+use crate::term::{c_accent, c_prefix, log_error, log_info};
 use crate::usecase;
 
 pub async fn handle_password(ctx: &AppContext, args: PasswordArgs) -> AppResult<()> {
@@ -18,7 +18,9 @@ async fn handle_password_set(ctx: &AppContext, args: PasswordLabelArgs) -> AppRe
         .map_err(|e| AppError::IoError(format!("failed to read password: {e}")))?;
 
     usecase::password::set_profile_password_by_label(ctx, args.label, Some(pwd)).await?;
-    eprintln!("{}", c_prefix("[jmssh] password stored in OS keyring"));
+
+    log_info(c_accent("password stored in OS keyring"));
+
     Ok(())
 }
 
@@ -29,11 +31,10 @@ async fn handle_password_show(ctx: &AppContext, args: PasswordLabelArgs) -> AppR
             println!("{p}")
         }
         None => {
-            eprintln!(
-                "{} {}",
-                c_prefix("[jmssh] no password stored for profile"),
-                args.label,
-            );
+            log_error(format!(
+                "no password stored for profile {}",
+                c_accent(&args.label),
+            ));
         }
     }
 
@@ -42,10 +43,9 @@ async fn handle_password_show(ctx: &AppContext, args: PasswordLabelArgs) -> AppR
 
 async fn handle_password_clear(ctx: &AppContext, args: PasswordLabelArgs) -> AppResult<()> {
     usecase::password::clear_profile_password_by_label(ctx, args.label.clone()).await?;
-    eprintln!(
-        "{} {}",
-        c_prefix("[jmssh] password cleared for profile"),
-        args.label
-    );
+    log_info(format!(
+        "password cleared for profile {}",
+        c_accent(&args.label),
+    ));
     Ok(())
 }

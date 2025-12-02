@@ -2,8 +2,8 @@ use crate::app::AppContext;
 use crate::cli::ConnectArgs;
 use crate::entity::profiles::AuthMode;
 use crate::error::AppResult;
-use crate::term::{c_accent, c_prefix};
-use crate::usecase::{ConnectInput, connect};
+use crate::term::{c_accent, log_error, log_info};
+use crate::usecase::{connect, ConnectInput};
 use itertools::Itertools;
 use std::process::{Command, ExitStatus};
 
@@ -18,7 +18,7 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
     let plan = connect::build_connect_plan(ctx, input).await?;
 
     if plan.hops.is_empty() {
-        eprintln!("{} {}", c_prefix("[jmssh]"), "empty connect plan (no hops)");
+        log_error(c_accent("empty connect plan (no hops)"));
         return Ok(());
     }
 
@@ -82,8 +82,7 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
         .collect_vec();
 
     // 4. 登入前 log（彩色）
-    let prefix = c_prefix("[jmssh]");
-    let target_desc = c_accent(&format!("{}@{}:{}", target.user, target.host, target.port));
+    let prefix_target = c_accent(&format!("{}@{}:{}", target.user, target.host, target.port));
     let via_desc = (plan.hops.len() > 1)
         .then(|| {
             let chain = plan.hops[..plan.hops.len() - 1]
@@ -96,39 +95,46 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
         .unwrap_or_default();
 
     if let Some(pid) = password_profile_id {
+        let label_for_log = plan
+            .hops
+            .iter()
+            .find(|h| h.id == pid)
+            .map(|h| h.label.clone())
+            .unwrap_or_else(|| format!("#{pid}"));
+
         match password_opt.as_ref() {
-            Some(_) => eprintln!(
-                "{} using {} for profile {}",
-                prefix,
+            Some(_) => log_info(format!(
+                "using {} for profile {}",
                 c_accent("stored password"),
-                c_accent(&format!("#{pid}"))
-            ),
-            None => eprintln!(
-                "{} auth_mode=password but {}",
-                prefix,
-                c_accent("no password stored in keyring")
-            ),
+                c_accent(&label_for_log),
+            )),
+            None => log_error(format!(
+                "{}={} but {}",
+                c_accent("auth_mode"),
+                c_accent("password"),
+                c_accent("no password stored in keyring"),
+            )),
         }
     }
 
-    eprintln!("{prefix} connecting to {target_desc}{via_desc} ...");
-    eprintln!("{prefix} exec {} {}", c_accent("ssh"), ssh_args.join(" "));
+    log_info(format!("connecting to {prefix_target}{via_desc} ..."));
+    log_info(format!("exec {} {}", c_accent("ssh"), ssh_args.join(" ")));
 
     // 5. 调用系统 ssh，继承当前终端 I/O
     let status = run_ssh_with_password(&ssh_args, password_opt.as_deref())?;
 
     // 6. 退出 log（彩色）
     if status.success() {
-        eprintln!("{} {}", prefix, c_accent("ssh session finished OK"));
+        log_info(c_accent("ssh session finished OK"));
     } else if let Some(code) = status.code() {
-        eprintln!(
-            "{} ssh exited with {}",
-            prefix,
-            c_accent(&format!("code {}", code))
-        );
+        log_error(format!(
+            "{} {}",
+            c_accent("ssh exited with"),
+            c_accent(&format!("code {}", code)),
+        ));
     } else {
         // 信号之类的情况
-        eprintln!("{} ssh exited (terminated by signal)", prefix);
+        log_error(c_accent("ssh exited (terminated by signal)"));
     }
 
     Ok(())
@@ -154,19 +160,21 @@ fn run_ssh_with_password(args: &[String], password: Option<&str>) -> AppResult<E
         .status()
     {
         Ok(status) => {
-            println!("ssh exited with status {}", status);
+            log_info(format!(
+                "{} {}",
+                c_accent("sshpass finished with status"),
+                c_accent(&format!("{status}")),
+            ));
             Ok(status)
         }
 
         // sshpass 不存在：打一行提示，然后 fallback 到普通 ssh
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            let prefix = c_prefix("[jmssh]");
-            eprintln!(
-                "{} {} `{}` not found, falling back to plain ssh (you'll need to type password manually)",
-                prefix,
+            log_error(format!(
+                "{} `{}` not found, falling back to plain ssh (you'll need to type password manually)",
                 c_accent("sshpass"),
                 c_accent("sshpass"),
-            );
+            ));
             plain_ssh(args)
         }
 
