@@ -1,11 +1,7 @@
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(
-    name = "jmssh",
-    version,
-    about = "jmssh - SSH profile manager"
-)]
+#[command(name = "jmssh", version, about = "jmssh - SSH profile manager")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
@@ -109,16 +105,18 @@ pub struct EditProfileArgs {
 #[derive(Args)]
 pub struct ConnectArgs {
     /// Profile label to connect to, e.g. 'prod.web-1'
+    #[arg(help = "Profile label (recommended) or raw host, e.g. 'prod.web-1'")]
     pub target: String,
 
     /// Optional numeric profile id; when set, overrides the label
-    #[arg(long, help = "Optional profile id; if provided, it takes precedence over label")]
+    #[arg(long, help = "Profile numeric id; overrides label matching when set")]
     pub id: Option<u32>,
 }
 
 #[derive(Args)]
 pub struct ProfileWithoutArgs {
     /// Profile label, e.g. "prod.web-1"
+    #[arg(help = "Profile label (recommended) or raw host, e.g. 'prod.web-1'")]
     pub label: String,
 }
 
@@ -144,6 +142,7 @@ pub enum PasswordCommand {
 #[derive(Args)]
 pub struct PasswordLabelArgs {
     /// Profile label to operate on
+    #[arg(help = "Profile label (recommended) or raw host, e.g. 'prod.web-1'")]
     pub label: String,
 }
 
