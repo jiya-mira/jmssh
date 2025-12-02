@@ -27,13 +27,13 @@ async fn main() -> Result<()> {
         Command::Init => {
             init_schema(&db).await?;
         }
-        Command::Gui(args) => {
-            log_warn(c_accent("gui command is not implemented yet"));
+        Command::Gui(_) => {
+            log_warn("gui command is not implemented yet");
         }
         Command::Password(args) => handlers::password::handle_password(&ctx, args).await?,
         Command::Profile(args) => handlers::profile::handle_profile(&ctx, args).await?,
         Command::Connect(args) => handlers::connect::handle_connect(&ctx, args).await?,
-        Command::_Complete(args) => {}
+        Command::_Complete(_) => {}
     }
 
     Ok(())
