@@ -29,6 +29,9 @@ pub enum AppError {
 
     #[error("io error: {0}")]
     IoError(String),
+    
+    #[error("internal server error: {0}")]
+    InternalError(String),
 }
 
 pub type AppResult<T> = anyhow::Result<T, AppError>;
