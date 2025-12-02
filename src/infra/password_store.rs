@@ -31,6 +31,10 @@ impl OsPasswordStore {
     }
 
     fn entry_for_profile(&self, profile_id: u32) -> AppResult<Entry> {
+        eprintln!(
+            "[jmssh-debug] keyring service={}, user=profile:{}",
+            self.service, profile_id
+        );
         let user = format!("profile:{profile_id}");
         Entry::new(&self.service, &user).map_err(|e| {
             AppError::PasswordStoreError(format!(

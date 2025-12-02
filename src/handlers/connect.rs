@@ -153,7 +153,10 @@ fn run_ssh_with_password(args: &[String], password: Option<&str>) -> AppResult<E
         .args(args)
         .status()
     {
-        Ok(status) => Ok(status),
+        Ok(status) => {
+            println!("ssh exited with status {}", status);
+            Ok(status)
+        }
 
         // sshpass 不存在：打一行提示，然后 fallback 到普通 ssh
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
