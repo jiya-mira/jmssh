@@ -1,6 +1,6 @@
 # jmssh
 
-![Release CI](https://github.com/jiya-mira/jmssh/actions/workflows/release.yml/badge.svg) 
+[![Release CI](https://github.com/jiya-mira/jmssh/actions/workflows/release.yml/badge.svg)](https://github.com/jiya-mira/jmssh/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-informational)
 
