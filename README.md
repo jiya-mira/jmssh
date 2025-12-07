@@ -1,5 +1,9 @@
 # jmssh
 
+![Release CI](https://github.com/jiya-mira/jmssh/actions/workflows/release.yml/badge.svg) 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-informational)
+
 `jmssh` is a local-first SSH profile manager and connection helper.
 
 It lives on top of your existing `ssh` and focuses on:
@@ -76,7 +80,7 @@ jmssh profile add prod-web --host=example.com --user=ubuntu --port=22 --mode=aut
 #### Useful profile commands:
 + `jmssh profile list` – list all profiles
 + `jmssh profile show prod-web` – show one profile
-+ `jmssh profile set prod-web --user=ubuntu -–mode=password` – update in place
++ `jmssh profile set prod-web --user=ubuntu --mode=password` – update in place
 
 Only fields you pass are changed; the rest stay as they are.
 
@@ -117,6 +121,8 @@ Exit codes follow `ssh`, so you can script around `jmssh connect` just like you 
 ---
 
 ## About sshpass (Unix, for password mode)
+
+`sshpass` is an optional helper: `jmssh` works without it, but can auto-fill passwords on Unix when it is installed.
 
 When `auth_mode=password` and a password is stored in the OS keyring:
 + On Unix-like systems, if `sshpass` is available, `jmssh` uses it to automatically feed the password to `ssh`.
@@ -163,6 +169,9 @@ If you need a full SSH GUI (tabs, file browser, port manager, etc.), `jmssh` is 
 ---
 
 ## Current feature set (v0.1.x)
+
+v0.1.x focuses on a small, robust core:
+
 + Local profile management
   + `jmssh profile add / set / rm / show / list`
 + Simple connect command

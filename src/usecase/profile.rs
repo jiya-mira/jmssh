@@ -162,22 +162,3 @@ pub async fn set_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
         note: model.note,
     })
 }
-
-pub async fn set_profile_password_by_label(
-    ctx: &AppContext,
-    label: String,
-    password: Option<String>,
-) -> AppResult<()> {
-    // 1) label -> profile.id
-    let profile = profiles::Entity::find()
-        .filter(profiles::Column::Label.eq(label.clone()))
-        .one(&ctx.db)
-        .await?
-        .ok_or(AppError::ProfileNotFound(label.clone()))?;
-
-    // 2) 交给 PasswordStore
-    ctx.password_store
-        .set_profile_password(profile.id, password)?;
-
-    Ok(())
-}

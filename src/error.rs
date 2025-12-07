@@ -17,7 +17,7 @@ pub enum AppError {
     ProfileAlreadyExists(String),
 
     #[error("nothing to update for profile: {0}")]
-    ProfileNothingToUpdate(String),
+    _ProfileNothingToUpdate(String),
 
     #[error("route target profile not found for label: {0}")]
     ProfileRouteTargetNotFound(String),
@@ -31,7 +31,7 @@ pub enum AppError {
     IoError(String),
     
     #[error("internal server error: {0}")]
-    InternalError(String),
+    _InternalError(String),
 }
 
 pub type AppResult<T> = anyhow::Result<T, AppError>;

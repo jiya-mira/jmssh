@@ -9,11 +9,11 @@ pub trait PasswordStore: Send + Sync {
 pub struct NoopPasswordStore;
 
 impl PasswordStore for NoopPasswordStore {
-    fn set_profile_password(&self, profile_id: u32, password: Option<String>) -> AppResult<()> {
+    fn set_profile_password(&self, _profile_id: u32, _password: Option<String>) -> AppResult<()> {
         Ok(())
     }
 
-    fn get_profile_password(&self, profile_id: u32) -> AppResult<Option<String>> {
+    fn get_profile_password(&self, _profile_id: u32) -> AppResult<Option<String>> {
         Ok(None)
     }
 }
