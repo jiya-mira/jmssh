@@ -1,7 +1,7 @@
 use crate::app::AppContext;
 use crate::cli::{PasswordArgs, PasswordCommand, PasswordLabelArgs};
 use crate::error::{AppError, AppResult};
-use crate::term::{c_accent, c_prefix, log_error, log_info};
+use crate::term::{c_accent, log_error, log_info};
 use crate::usecase;
 
 pub async fn handle_password(ctx: &AppContext, args: PasswordArgs) -> AppResult<()> {

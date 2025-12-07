@@ -1,7 +1,7 @@
 use crate::app::AppContext;
 use crate::cli::{EditProfileArgs, ProfileArgs, ProfileCommand};
 use crate::error::AppResult;
-use crate::term::{c_accent, c_prefix, log_info, log_warn};
+use crate::term::{c_accent, log_info, log_warn};
 use crate::usecase;
 
 pub async fn handle_profile(ctx: &AppContext, args: ProfileArgs) -> AppResult<()> {

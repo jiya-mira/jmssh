@@ -13,7 +13,7 @@ mod term;
 mod usecase;
 
 use crate::db::init_schema;
-use crate::term::{c_accent, log_warn};
+use crate::term::log_warn;
 use anyhow::Result;
 
 #[tokio::main]

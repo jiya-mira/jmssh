@@ -2,9 +2,10 @@ use crate::app::AppContext;
 use crate::cli::ConnectArgs;
 use crate::entity::profiles::AuthMode;
 use crate::error::AppResult;
-use crate::term::{c_accent, log_error, log_info};
-use crate::usecase::{connect, ConnectInput};
+use crate::term::{c_accent, c_error, log_error, log_info};
+use crate::usecase::{ConnectInput, connect};
 use itertools::Itertools;
+use std::io::ErrorKind;
 use std::process::{Command, ExitStatus};
 
 pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()> {
@@ -143,7 +144,19 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
 #[cfg(unix)]
 fn run_ssh_with_password(args: &[String], password: Option<&str>) -> AppResult<ExitStatus> {
     fn plain_ssh(args: &[String]) -> AppResult<ExitStatus> {
-        Ok(Command::new("ssh").args(args).status()?)
+        match Command::new("ssh").args(args).status() {
+            Ok(status) => Ok(status),
+            Err(e) if e.kind() == ErrorKind::NotFound => {
+                log_error(format!(
+                    "{} `{}` {}",
+                    c_error("ssh binary not found,"),
+                    c_accent("ssh"),
+                    "is required on this system; please install an OpenSSH client package and try again.",
+                ));
+                Err(e.into())
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     let pwd = match password {
