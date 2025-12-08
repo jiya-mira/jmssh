@@ -19,7 +19,7 @@ pub async fn set_profile_password_by_label(
     label: String,
     password: Option<String>,
 ) -> AppResult<()> {
-    let model = find_profile_id_by_label(&ctx, label.clone()).await?;
+    let model = find_profile_id_by_label(ctx, label.clone()).await?;
     ctx.password_store
         .set_profile_password(model.id, password)?;
     Ok(())
@@ -29,12 +29,12 @@ pub async fn get_profile_password_by_label(
     ctx: &AppContext,
     label: String,
 ) -> AppResult<Option<String>> {
-    let model = find_profile_id_by_label(&ctx, label.clone()).await?;
+    let model = find_profile_id_by_label(ctx, label.clone()).await?;
     ctx.password_store.get_profile_password(model.id)
 }
 
 pub async fn clear_profile_password_by_label(ctx: &AppContext, label: String) -> AppResult<()> {
-    let model = find_profile_id_by_label(&ctx, label.clone()).await?;
+    let model = find_profile_id_by_label(ctx, label.clone()).await?;
     ctx.password_store.set_profile_password(model.id, None)?;
     Ok(())
 }

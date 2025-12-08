@@ -3,7 +3,7 @@ use crate::cli::ConnectArgs;
 use crate::entity::profiles::AuthMode;
 use crate::error::AppResult;
 use crate::term::{c_accent, c_error, log_error, log_info};
-use crate::usecase::{ConnectInput, connect};
+use crate::usecase::{connect, ConnectInput};
 use itertools::Itertools;
 use std::io::ErrorKind;
 use std::process::{Command, ExitStatus};
@@ -36,8 +36,8 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
 
     // 3. 拼 ssh 参数（尽量不用 ssh_args 的 mut，按片段组合）
     // 3.1 jump 链：前 N-1 个 hop 作为 ProxyJump
-    let proxy_args = (plan.hops.len() > 1)
-        .then(|| {
+    let proxy_args = if plan.hops.len() > 1 {
+        {
             vec![
                 "-J".to_string(),
                 plan.hops[..plan.hops.len() - 1]
@@ -46,16 +46,20 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
                     .collect_vec()
                     .join(","),
             ]
-        })
-        .unwrap_or_default();
+        }
+    } else {
+        Default::default()
+    };
 
     // 3.2 最终目标
     let target = plan.hops.last().unwrap();
 
     // 端口参数
-    let port_args = (target.port != 22)
-        .then(|| vec!["-p".to_string(), target.port.to_string()])
-        .unwrap_or_default();
+    let port_args = if target.port != 22 {
+        vec!["-p".to_string(), target.port.to_string()]
+    } else {
+        Vec::new()
+    };
 
     // key 参数（先只管最终目标的 key）
     let key_args = matches!(
@@ -72,7 +76,7 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
     .unwrap_or_default();
 
     // user@host
-    let dest_arg = vec![target.user.clone(), target.host.clone()].join("@");
+    let dest_arg = [target.user.clone(), target.host.clone()].join("@");
 
     // 汇总成最终的 ssh_args（这里才需要一次 collect）
     let ssh_args = proxy_args
@@ -84,16 +88,18 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
 
     // 4. 登入前 log（彩色）
     let prefix_target = c_accent(&format!("{}@{}:{}", target.user, target.host, target.port));
-    let via_desc = (plan.hops.len() > 1)
-        .then(|| {
+    let via_desc = if plan.hops.len() > 1 {
+        {
             let chain = plan.hops[..plan.hops.len() - 1]
                 .iter()
                 .map(|h| format!("{}@{}", h.user, h.host))
                 .collect_vec()
                 .join(" -> ");
             format!(" via {}", c_accent(&chain))
-        })
-        .unwrap_or_default();
+        }
+    } else {
+        Default::default()
+    };
 
     if let Some(pid) = password_profile_id {
         let label_for_log = plan

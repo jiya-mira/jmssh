@@ -17,6 +17,7 @@ pub struct EditProfileInput {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ProfileView {
     pub id: u32,
     pub label: String,
