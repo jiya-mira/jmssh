@@ -11,7 +11,6 @@ impl AppContext {
     pub fn new(db: DatabaseConnection) -> Self {
         let store: Arc<dyn PasswordStore> = if cfg!(any(target_os = "macos", target_os = "windows"))
         {
-            println!("use os password store");
             Arc::new(OsPasswordStore::new("com.jiyamira.jmssh"))
         } else {
             Arc::new(NoopPasswordStore)

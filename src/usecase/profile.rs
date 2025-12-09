@@ -5,9 +5,22 @@ use crate::entity::profiles::AuthMode;
 use crate::error::{AppError, AppResult};
 use crate::usecase::{EditProfileInput, ProfileView};
 use itertools::Itertools;
-use sea_orm::{ActiveModelTrait, QueryFilter, TransactionTrait};
+use sea_orm::{ActiveModelTrait, QueryFilter, QueryOrder, TransactionTrait};
 use sea_orm::{ColumnTrait, ConnectionTrait, EntityTrait, Set};
 use std::collections::HashMap;
+
+fn to_view(model: profiles::Model) -> ProfileView {
+    ProfileView {
+        id: model.id,
+        label: model.label.unwrap_or_default(),
+        host: model.hostname,
+        user: model.username,
+        port: model.port.unwrap_or(22),
+        mode: model.auth_mode.as_str().to_string(),
+        tags: model.tags,
+        note: model.note,
+    }
+}
 
 async fn replace_jumps_for_profile<C>(db: &C, profile_id: u32, jumps: &[String]) -> AppResult<()>
 where
@@ -99,16 +112,7 @@ pub async fn add_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
 
     txn.commit().await?;
 
-    Ok(ProfileView {
-        id: model.id,
-        label: model.label.unwrap_or_default(),
-        host,
-        user,
-        port,
-        mode: model.auth_mode.as_str().to_string(),
-        tags: model.tags,
-        note: model.note,
-    })
+    Ok(to_view(model))
 }
 
 pub async fn set_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult<ProfileView> {
@@ -151,14 +155,85 @@ pub async fn set_profile(ctx: &AppContext, input: EditProfileInput) -> AppResult
 
     txn.commit().await?;
 
-    Ok(ProfileView {
-        id: model.id,
-        label: model.label.unwrap_or_default(),
-        host: model.hostname,
-        user: model.username,
-        port: model.port.unwrap_or(22),
-        mode: model.auth_mode.as_str().to_string(),
-        tags: model.tags,
-        note: model.note,
-    })
+    Ok(to_view(model))
+}
+
+pub async fn list_profiles(ctx: &AppContext) -> AppResult<Vec<ProfileView>> {
+    let rows = profiles::Entity::find()
+        .order_by_asc(profiles::Column::Label)
+        .all(&ctx.db)
+        .await?;
+
+    Ok(rows.into_iter().map(to_view).collect_vec())
+}
+#[allow(dead_code)]
+pub async fn get_profile_by_label(ctx: &AppContext, label: String) -> AppResult<ProfileView> {
+    let model = profiles::Entity::find()
+        .filter(profiles::Column::Label.eq(label.clone()))
+        .one(&ctx.db)
+        .await?
+        .ok_or(AppError::ProfileNotFound(label))?;
+
+    Ok(to_view(model))
+}
+
+pub async fn get_profile_detail_by_label(
+    ctx: &AppContext,
+    label: String,
+) -> AppResult<(ProfileView, Vec<ProfileView>)> {
+    // 1) 先查 profile
+    let model = profiles::Entity::find()
+        .filter(profiles::Column::Label.eq(label.clone()))
+        .one(&ctx.db)
+        .await?
+        .ok_or(AppError::ProfileNotFound(label))?;
+
+    // 2) 再查 routes（按 seq 排）
+    let routes = entity::routes::Entity::find()
+        .filter(entity::routes::Column::ProfileId.eq(model.id))
+        .order_by_asc(entity::routes::Column::Seq)
+        .all(&ctx.db)
+        .await?;
+
+    // 3) 批量查 via profile，再按 route 顺序组装
+    let via_ids = routes.iter().map(|r| r.via_profile_id).collect_vec();
+
+    let via_models = profiles::Entity::find()
+        .filter(profiles::Column::Id.is_in(via_ids.clone()))
+        .all(&ctx.db)
+        .await?;
+
+    let id2view = via_models
+        .into_iter()
+        .map(|m| (m.id, to_view(m)))
+        .collect::<HashMap<_, _>>();
+
+    let jumps = routes
+        .iter()
+        .filter_map(|r| id2view.get(&r.via_profile_id).cloned())
+        .collect_vec();
+
+    Ok((to_view(model), jumps))
+}
+
+pub async fn delete_profile_by_label(ctx: &AppContext, label: String) -> AppResult<()> {
+    let txn = ctx.db.begin().await?;
+
+    let model = profiles::Entity::find()
+        .filter(profiles::Column::Label.eq(label.clone()))
+        .one(&txn)
+        .await?
+        .ok_or(AppError::ProfileNotFound(label))?;
+
+    // 先删 routes，再删 profile（如果没有外键约束，这两步顺序也无所谓）
+    entity::routes::Entity::delete_many()
+        .filter(entity::routes::Column::ProfileId.eq(model.id))
+        .exec(&txn)
+        .await?;
+
+    profiles::Entity::delete_by_id(model.id).exec(&txn).await?;
+
+    txn.commit().await?;
+
+    Ok(())
 }

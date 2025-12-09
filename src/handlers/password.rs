@@ -1,7 +1,7 @@
 use crate::app::AppContext;
 use crate::cli::{PasswordArgs, PasswordCommand, PasswordLabelArgs};
 use crate::error::{AppError, AppResult};
-use crate::term::{c_accent, log_error, log_info};
+use crate::term::{c_accent, c_error, log_error, log_info, log_warn};
 use crate::usecase;
 
 pub async fn handle_password(ctx: &AppContext, args: PasswordArgs) -> AppResult<()> {
@@ -28,7 +28,14 @@ async fn handle_password_show(ctx: &AppContext, args: PasswordLabelArgs) -> AppR
     let pwd = usecase::password::get_profile_password_by_label(ctx, args.label.clone()).await?;
     match pwd {
         Some(p) => {
-            println!("{p}")
+            log_warn(format!(
+                "showing password for profile {} (plaintext below)",
+                c_accent(&args.label),
+            ));
+
+            // stdout：直接输出密码，本身用醒目颜色
+            // 终端里一眼能看出是敏感内容；管道场景下只是多了 ANSI，但功能不受影响
+            println!("{}", c_error(&p));
         }
         None => {
             log_error(format!(

@@ -36,8 +36,7 @@ If you are searching for alternatives around `Xshell`, `Termius`, `SecureCRT`, `
 ## Installation
 
 Current distribution: prebuilt binaries from GitHub Releases.
-1. Open the Releases page, for example:
-`https://github.com/jiya-mira/jmssh/releases`
+1. Open the Releases page: https://github.com/jiya-mira/jmssh/releases
 2. Download the binary for your platform
 (e.g. `jmssh-aarch64-apple-darwin`, `jmssh-x86_64-unknown-linux-gnu`, Windows build, etc.).
 3. Put it somewhere on your `PATH` and make it executable if needed

@@ -3,7 +3,6 @@ use sea_orm::DerivePrimaryKey;
 use sea_orm::{ActiveModelBehavior, DeriveEntityModel, EnumIter};
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, DeriveEntityModel)]
 #[sea_orm(table_name = "local_auth")]
 pub struct Model {

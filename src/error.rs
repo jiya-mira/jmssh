@@ -29,7 +29,7 @@ pub enum AppError {
 
     #[error("io error: {0}")]
     IoError(String),
-    
+
     #[error("internal server error: {0}")]
     _InternalError(String),
 }
