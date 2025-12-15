@@ -78,9 +78,20 @@ pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()
     // user@host
     let dest_arg = [target.user.clone(), target.host.clone()].join("@");
 
+    let compress_args = vec![String::from("-C")];
+
+    let keepalive_args = vec![
+        "-o".to_string(),
+        "ServerAliveInterval=30".to_string(),
+        "-o".to_string(),
+        "ServerAliveCountMax=3".to_string(),
+    ];
+
     // 汇总成最终的 ssh_args（这里才需要一次 collect）
     let ssh_args = proxy_args
         .into_iter()
+        .chain(compress_args)
+        .chain(keepalive_args)
         .chain(port_args)
         .chain(key_args)
         .chain(std::iter::once(dest_arg))
