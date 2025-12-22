@@ -1,6 +1,7 @@
 use app::AppContext;
 use clap::Parser;
 use cli::Command;
+use std::io::IsTerminal;
 
 mod app;
 mod cli;
@@ -10,10 +11,13 @@ mod error;
 mod handlers;
 mod infra;
 mod term;
+mod ui;
 mod usecase;
 
+use crate::cli::Cli;
 use crate::db::init_schema;
-use crate::term::log_warn;
+use crate::term::{c_accent, log_error, log_info, log_warn};
+use crate::ui::tui::connect::pick_profile_label_for_connect;
 use anyhow::Result;
 
 #[tokio::main]
@@ -21,20 +25,56 @@ async fn main() -> Result<()> {
     let cli = cli::Cli::parse();
 
     let db = db::connect_db().await?;
-    let ctx = AppContext::new(db.clone());
+    let ctx = AppContext::new(db);
+    dispatch(&ctx, cli).await
+}
+
+async fn dispatch(ctx: &AppContext, cli: Cli) -> Result<()> {
+    let is_tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
+    let can_interactive = !cli.no_interactive && is_tty;
 
     match cli.command {
-        Command::Init => {
-            init_schema(&db).await?;
-        }
-        Command::Gui(_) => {
-            log_warn("gui command is not implemented yet");
-        }
-        Command::Password(args) => handlers::password::handle_password(&ctx, args).await?,
-        Command::Profile(args) => handlers::profile::handle_profile(&ctx, args).await?,
-        Command::Connect(args) => handlers::connect::handle_connect(&ctx, args).await?,
-        Command::_Complete(_) => {}
-    }
+        None => {
+            if !can_interactive {
+                log_error(c_accent(
+                    "Error: Missing subcommand in non-interactive mode.",
+                ));
+                log_info(c_accent("Try 'jmssh --help' for usage."));
+                std::process::exit(1);
+            }
 
-    Ok(())
+            if let Some(label) = pick_profile_label_for_connect(ctx).await? {
+                handlers::connect::handle_connect(
+                    ctx,
+                    cli::ConnectArgs {
+                        target: Some(label),
+                        id: None,
+                    },
+                )
+                .await?;
+            }
+            Ok(())
+        }
+        Some(Command::Init) => {
+            init_schema(&ctx.db).await?;
+            Ok(())
+        }
+        Some(Command::Gui(_)) => {
+            log_warn("gui command is not implemented yet");
+            Ok(())
+        }
+        Some(Command::Password(args)) => {
+            handlers::password::handle_password(&ctx, args).await?;
+            Ok(())
+        }
+        Some(Command::Profile(args)) => {
+            handlers::profile::handle_profile(&ctx, args).await?;
+            Ok(())
+        }
+        Some(Command::Connect(args)) => {
+            handlers::connect::handle_connect(&ctx, args).await?;
+            Ok(())
+        }
+        Some(Command::_Complete(_)) => Ok(()),
+    }
 }

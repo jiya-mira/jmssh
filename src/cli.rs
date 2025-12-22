@@ -3,8 +3,16 @@ use clap::{Args, Parser, Subcommand};
 #[derive(Parser)]
 #[command(name = "jmssh", version, about = "jmssh - SSH profile manager")]
 pub struct Cli {
+    /// Disable interactive TUI (fail on missing args)
+    #[arg(long = "no-interactive", global = true)]
+    pub no_interactive: bool,
+
+    /// Force interactive TUI (skim)
+    #[arg(short = 'i', long = "interactive", global = true)]
+    pub interactive: bool,
+
     #[command(subcommand)]
-    pub command: Command,
+    pub command: Option<Command>,
 }
 
 #[derive(Subcommand)]
@@ -16,12 +24,15 @@ pub enum Command {
     Gui(GuiArgs),
 
     /// Manage SSH profiles
+    #[command(visible_alias = "p")]
     Profile(ProfileArgs),
 
     /// Connect to a profile (optionally by id)
+    #[command(visible_alias = "c")]
     Connect(ConnectArgs),
 
     /// Manage passwords in the OS keyring
+    #[command(visible_alias = "pwd")]
     Password(PasswordArgs),
 
     /// Internal completion helper (hidden)
@@ -44,13 +55,15 @@ pub enum ProfileCommand {
     /// Update an existing profile in place
     Set(EditProfileArgs),
 
-    /// Remove a profile by label
-    Rm(ProfileWithoutArgs),
+    /// Remove a profile
+    /// If no label provided, opens interactive selection
+    Rm(RmArgs),
 
     /// Show a single profile by label
-    Show(ProfileWithoutArgs),
+    Show(ShowArgs),
 
     /// List all profiles
+    #[command(visible_alias = "ls")]
     List,
 }
 
@@ -105,12 +118,28 @@ pub struct EditProfileArgs {
 #[derive(Args)]
 pub struct ConnectArgs {
     /// Profile label to connect to, e.g. 'prod.web-1'
-    #[arg(help = "Profile label (recommended) or raw host, e.g. 'prod.web-1'")]
-    pub target: String,
+    #[arg(help = "Profile label (recommended) or raw host. Leave empty for interactive mode.")]
+    pub target: Option<String>,
 
     /// Optional numeric profile id; when set, overrides the label
     #[arg(long, help = "Profile numeric id; overrides label matching when set")]
     pub id: Option<u32>,
+}
+
+#[derive(Args)]
+pub struct RmArgs {
+    /// Profile label to remove.
+    /// If NOT provided, opens interactive TUI to pick a profile to delete.
+    #[arg(help = "Profile label. Leave empty to select interactively.")]
+    pub label: Option<String>,
+}
+
+// Show 不做交互式，因为看详情通常是脚本行为，或者既然都交互了直接看 Preview 就行
+#[derive(Args)]
+pub struct ShowArgs {
+    /// Profile label
+    #[arg(help = "Profile label")]
+    pub label: String, // 这里保持必填，因为 "jmssh show" 不带参数没意义
 }
 
 #[derive(Args)]
