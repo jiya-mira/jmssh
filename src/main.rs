@@ -17,7 +17,7 @@ mod usecase;
 use crate::cli::Cli;
 use crate::db::init_schema;
 use crate::term::{c_accent, log_error, log_info, log_warn};
-use crate::ui::tui::connect::pick_profile_label_for_connect;
+use crate::ui::tui::connect::pick_profile_for_connect;
 use anyhow::Result;
 
 #[tokio::main]
@@ -43,11 +43,11 @@ async fn dispatch(ctx: &AppContext, cli: Cli) -> Result<()> {
                 std::process::exit(1);
             }
 
-            if let Some(label) = pick_profile_label_for_connect(ctx).await? {
+            if let Some(p) = pick_profile_for_connect(ctx).await? {
                 handlers::connect::handle_connect(
                     ctx,
                     cli::ConnectArgs {
-                        target: Some(label),
+                        target: Some(p.label),
                         id: None,
                     },
                 )

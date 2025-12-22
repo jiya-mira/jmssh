@@ -25,3 +25,4 @@ tokio-macros = "2"
 keyring = { version = "3", features = ["apple-native", "windows-native", "linux-native-sync-persistent", "sync-secret-service", "crypto-rust", "vendored"] }
 tabwriter = { version = "1", features = ["ansi_formatting"] }
 skim = "0"
+console = "0"
