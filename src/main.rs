@@ -54,7 +54,7 @@ async fn dispatch(ctx: &AppContext, cli: Cli) -> Result<()> {
                     ctx,
                     cli::ConnectArgs {
                         target: Some(p.label),
-                        id: None,
+                        id: Some(p.id),
                     },
                 )
                 .await?;
@@ -70,15 +70,34 @@ async fn dispatch(ctx: &AppContext, cli: Cli) -> Result<()> {
             Ok(())
         }
         Some(Command::Password(args)) => {
-            handlers::password::handle_password(&ctx, args).await?;
+            handlers::password::handle_password(ctx, args).await?;
             Ok(())
         }
         Some(Command::Profile(args)) => {
-            handlers::profile::handle_profile(&ctx, args).await?;
+            handlers::profile::handle_profile(ctx, args).await?;
             Ok(())
         }
         Some(Command::Connect(args)) => {
-            handlers::connect::handle_connect(&ctx, args).await?;
+            if args.target.is_none() {
+                if !can_interactive {
+                    log_error(c_accent("Error: Missing target in non-interactive mode."));
+                    log_info(c_accent("Try 'jmssh connect --help' for usage."));
+                    std::process::exit(1);
+                }
+
+                if let Some(p) = pick_profile_for_connect(ctx).await? {
+                    handlers::connect::handle_connect(
+                        ctx,
+                        cli::ConnectArgs {
+                            target: Some(p.label),
+                            id: Some(p.id),
+                        },
+                    )
+                    .await?;
+                }
+            } else {
+                handlers::connect::handle_connect(ctx, args).await?;
+            }
             Ok(())
         }
         Some(Command::_Complete(_)) => Ok(()),
