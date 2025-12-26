@@ -31,6 +31,12 @@ async fn main() -> Result<()> {
 
 async fn dispatch(ctx: &AppContext, cli: Cli) -> Result<()> {
     let is_tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
+
+    if cli.interactive && !is_tty {
+        log_error(c_accent("Error: --interactive requires a TTY."));
+        std::process::exit(1);
+    }
+
     let can_interactive = !cli.no_interactive && is_tty;
 
     match cli.command {

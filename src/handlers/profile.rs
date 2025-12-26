@@ -1,7 +1,5 @@
 use crate::app::AppContext;
-use crate::cli::{
-    EditProfileArgs, ProfileArgs, ProfileCommand, RmArgs, ShowArgs,
-};
+use crate::cli::{EditProfileArgs, ProfileArgs, ProfileCommand, RmArgs, ShowArgs};
 use crate::error::{AppError, AppResult};
 use crate::term::{c_accent, log_error, log_info, log_warn};
 use crate::usecase;
@@ -123,18 +121,15 @@ async fn profile_show(ctx: &AppContext, args: ShowArgs) -> AppResult<()> {
 }
 
 async fn profile_rm(ctx: &AppContext, args: RmArgs) -> AppResult<()> {
-    if let Some(label) = args.label {
-        match usecase::profile::delete_profile_by_label(ctx, label.clone()).await {
-            Ok(()) => {
-                log_warn(format!("profile {} removed", c_accent(&label)));
-            }
-            Err(AppError::ProfileNotFound(_)) => {
-                log_error(format!("profile not found for label {}", c_accent(&label)));
-            }
-            Err(e) => return Err(e),
+    let label = args.label;
+    match usecase::profile::delete_profile_by_label(ctx, label.clone()).await {
+        Ok(()) => {
+            log_warn(format!("profile {} removed", c_accent(&label)));
         }
-    } else {
-        log_error(c_accent("profile is empty"))
+        Err(AppError::ProfileNotFound(_)) => {
+            log_error(format!("profile not found for label {}", c_accent(&label)));
+        }
+        Err(e) => return Err(e),
     }
     Ok(())
 }

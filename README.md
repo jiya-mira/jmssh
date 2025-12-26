@@ -19,7 +19,7 @@ If you are searching for alternatives around `Xshell`, `Termius`, `SecureCRT`, `
 
 ### Secure by default
 + SSH passwords are never stored in the `jmssh` database.
-+ Secrets are stored only in OS credential vaults (macOS Keychain, Windows Credential Manager, Linux Secret Service / keyutils, etc.).
++ Secrets are stored only in OS credential vaults (macOS Keychain, Windows Credential Manager, Linux Secret Service, etc.).
 + All connections are executed via the system `ssh` binary.
 
 ### Simple mental model
@@ -74,7 +74,7 @@ jmssh profile add prod-web --host=example.com --user=ubuntu --port=22 --mode=aut
 + `--mode` – authentication mode:
   - `auto` – use ssh agent / default `ssh` behaviour
   - `password` – OS keyring + optional `sshpass` (Unix)
-  - `key` – explicit private key (reserved for richer key support in future)
+  - `key` – use an explicit private key path (basic support)
 
 #### Useful profile commands:
 + `jmssh profile list` – list all profiles
@@ -114,6 +114,10 @@ If no password is stored, `jmssh` just runs `ssh` and lets it ask for the passwo
 jmssh connect prod-web
 ```
 
+#### Interactive connect (TTY)
+
+Run `jmssh connect` (or `jmssh c`) to open a picker when no target is provided.
+
 `jmssh` resolves the profile, prints a short colorized summary (profile label, `user@host:port`, `auth_mode`), then hands control over to the system `ssh` process.
 Exit codes follow `ssh`, so you can script around `jmssh connect` just like you would with `ssh`.
 
@@ -122,6 +126,8 @@ Exit codes follow `ssh`, so you can script around `jmssh connect` just like you 
 ## About sshpass (Unix, for password mode)
 
 `sshpass` is an optional helper: `jmssh` works without it, but can auto-fill passwords on Unix when it is installed.
+
+> Note: `sshpass` only wraps the system `ssh` command; `jmssh` still relies on your OpenSSH client.
 
 When `auth_mode=password` and a password is stored in the OS keyring:
 + On Unix-like systems, if `sshpass` is available, `jmssh` uses it to automatically feed the password to `ssh`.
@@ -167,23 +173,24 @@ If you need a full SSH GUI (tabs, file browser, port manager, etc.), `jmssh` is 
 
 ---
 
-## Current feature set (v0.1.x)
+## Current feature set 
 
-v0.1.x focuses on a small, robust core:
+v0.x focuses on a small, robust core:
 
 + Local profile management
   + `jmssh profile add / set / rm / show / list`
 + Simple connect command
-  + `jmssh connect `
+  + `jmssh connect`
 + Password handling via OS credential store
-  + `jmssh password set / show / clear `
+  + `jmssh password set / show / clear`
 + Optional password autofill on Unix using `sshpass`
 + Colorful, compact CLI output
   + consistently shows profile label
   + highlights `user@host:port`
   + indicates active `auth_mode`
++ Interactive connect picker (TTY): `jmssh connect` (or `jmssh c`) opens a picker when target is missing
 
-More advanced capabilities (like multi-hop jump chains) already exist internally but are deliberately kept out of this first page to keep the initial experience lightweight.
+More advanced capabilities (like multi-hop / team workflows) may be added later based on real usage.
 
 ---
 

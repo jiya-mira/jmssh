@@ -11,17 +11,23 @@ use std::process::{Command, ExitStatus};
 
 pub async fn handle_connect(ctx: &AppContext, args: ConnectArgs) -> AppResult<()> {
     // 1. CLI -> usecase 输入
-    let input;
-    if let Some(target) = args.target {
-        input = ConnectInput {
-            target: target.clone(),
+    let input = if let Some(target) = args.target {
+        ConnectInput {
+            target,
             id: args.id,
-        };
+        }
     } else {
-        pick_profile_for_connect(ctx).await?;
-        log_error(c_accent("target is empty"));
-        return Ok(());
-    }
+        match pick_profile_for_connect(ctx).await? {
+            Some(p) => ConnectInput {
+                target: p.label,
+                id: Some(p.id),
+            },
+            None => {
+                log_error(c_accent("no profiles to connect"));
+                return Ok(());
+            }
+        }
+    };
 
     // 2. 计算连接计划（含跳板链）
     let plan = connect::build_connect_plan(ctx, input).await?;

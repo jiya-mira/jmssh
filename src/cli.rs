@@ -131,7 +131,7 @@ pub struct RmArgs {
     /// Profile label to remove.
     /// If NOT provided, opens interactive TUI to pick a profile to delete.
     #[arg(help = "Profile label. Leave empty to select interactively.")]
-    pub label: Option<String>,
+    pub label: String,
 }
 
 // Show 不做交互式，因为看详情通常是脚本行为，或者既然都交互了直接看 Preview 就行
