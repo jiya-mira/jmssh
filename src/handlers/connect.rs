@@ -4,7 +4,7 @@ use crate::entity::profiles::AuthMode;
 use crate::error::AppResult;
 use crate::term::{c_accent, c_error, log_error, log_info};
 use crate::ui::tui::connect::pick_profile_for_connect;
-use crate::usecase::{connect, ConnectInput};
+use crate::usecase::{ConnectInput, connect};
 use itertools::Itertools;
 use std::io::ErrorKind;
 use std::process::{Command, ExitStatus};

@@ -1,5 +1,5 @@
 use crate::entity::{local_auth, profiles, routes};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbBackend, Schema};
 use std::fs;

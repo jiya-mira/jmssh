@@ -27,6 +27,11 @@ pub fn c_error(text: &str) -> String {
     color("1;31", text)
 }
 
+pub fn c_warning(text: &str) -> String {
+    //
+    color("1;33", text)
+}
+
 pub fn log_info(msg: impl AsRef<str>) {
     eprintln!("{} {}", c_prefix("[jmssh]"), msg.as_ref());
 }

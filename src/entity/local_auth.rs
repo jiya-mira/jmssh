@@ -1,5 +1,5 @@
-use sea_orm::entity::prelude::*;
 use sea_orm::DerivePrimaryKey;
+use sea_orm::entity::prelude::*;
 use sea_orm::{ActiveModelBehavior, DeriveEntityModel, EnumIter};
 use serde::{Deserialize, Serialize};
 
