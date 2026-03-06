@@ -118,6 +118,12 @@ jmssh connect prod-web
 
 Run `jmssh connect` (or `jmssh c`) to open a picker when no target is provided.
 
+The picker supports:
++ incremental search by `label/user/host/port/mode`
++ table-style rows with `LABEL | DESTINATION | MODE`
++ a side panel showing full details of the currently selected profile
++ long destination text scrolling in one direction for readability
+
 `jmssh` resolves the profile, prints a short colorized summary (profile label, `user@host:port`, `auth_mode`), then hands control over to the system `ssh` process.
 Exit codes follow `ssh`, so you can script around `jmssh connect` just like you would with `ssh`.
 
@@ -189,6 +195,9 @@ v0.x focuses on a small, robust core:
   + highlights `user@host:port`
   + indicates active `auth_mode`
 + Interactive connect picker (TTY): `jmssh connect` (or `jmssh c`) opens a picker when target is missing
+  + searchable profile list (`label/user/host/port/mode`)
+  + table header + aligned columns
+  + selected profile detail panel
 
 More advanced capabilities (like multi-hop / team workflows) may be added later based on real usage.
 

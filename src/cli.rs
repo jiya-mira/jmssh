@@ -7,7 +7,7 @@ pub struct Cli {
     #[arg(long = "no-interactive", global = true)]
     pub no_interactive: bool,
 
-    /// Force interactive TUI (skim)
+    /// Force interactive TUI picker
     #[arg(short = 'i', long = "interactive", global = true)]
     pub interactive: bool,
 

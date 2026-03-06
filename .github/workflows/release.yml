@@ -86,5 +86,7 @@ jobs:
         with:
           files: upload/*
           draft: true
+          name: jmssh ${{ github.ref_name }}
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
